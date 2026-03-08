@@ -1,7 +1,7 @@
 const CACHE_NAME = 'korail-v1';
 const urlsToCache = [
-  '/',
-  '/index.html'
+  '/kor2202/',
+  '/kor2202/index.html'
 ];
 
 self.addEventListener('install', function(event) {

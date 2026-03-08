@@ -2,7 +2,7 @@
   "name": "안전교육(시설)",
   "short_name": "안전교육(시설)",
   "description": "한국철도공사 광주본부 시설처 안전교육자료 포털",
-  "start_url": "/",
+  "start_url": "/kor2202/",
   "display": "standalone",
   "background_color": "#F4F6FA",
   "theme_color": "#1B3A6B",
@@ -18,5 +18,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "scope": "/kor2202/"
 }
