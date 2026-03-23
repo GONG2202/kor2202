@@ -1260,7 +1260,7 @@ function showSlotPicker(docId) {
 
   const modal = document.createElement('div');
   modal.id = 'slotPickerModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-end;';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:flex-end;';
   modal.innerHTML = `<div style="background:#fff;width:100%;border-radius:20px 20px 0 0;padding:20px 16px 30px;">
     <div style="font-size:15px;font-weight:800;color:var(--brand);margin-bottom:4px;">배치할 칸 선택</div>
     <div style="font-size:12px;color:#7a8499;margin-bottom:14px;">${doc.name}</div>
@@ -1400,9 +1400,13 @@ function checkTilePw() {
     document.getElementById('tilePwInput').focus();
     return;
   }
+  var action = _pwAction;
+  var param = _pwParam;
   closeTilePw();
-  if (_pwAction === 'slot') showSlotPicker(_pwParam);
-  if (_pwAction === 'addTile') showAddTileModal(_pwParam);
+  setTimeout(function() {
+    if (action === 'slot') showSlotPicker(param);
+    if (action === 'addTile') showAddTileModal(param);
+  }, 150);
 }
 
 function showAddFromTile(slotIndex) {
