@@ -601,7 +601,7 @@
 <!-- MOBILE BOTTOM NAV -->
 <nav class="mobile-nav">
   <div class="mobile-nav-inner">
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:4px 8px 6px; background:var(--bg);">
+    <div id="mobile-widget-wrap" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:4px 8px 6px; background:var(--bg);">
       <div id="mobile-weather-widget" style="overflow:hidden;"></div>
       <div id="mobile-cal-widget" style="overflow:hidden;"></div>
     </div>
@@ -1341,9 +1341,28 @@ function mobileBack(to) { showMobileView(to); }
 function mobileNav(tab) {
   document.querySelectorAll(".mobile-nav-btn").forEach(b => b.classList.remove("active"));
   document.getElementById("nav-"+tab)?.classList.add("active");
-  if (tab === "home") showMobileView("projects");
-  if (tab === "doclist") renderDoclistView();
+  var widgetWrap = document.getElementById("mobile-widget-wrap");
+  var nav = document.querySelector(".mobile-nav");
+  var mobileApp = document.getElementById("mobileApp");
+
+  if (tab === "home") {
+    showMobileView("projects");
+    // 위젯 보이기 + nav 높이 원래대로
+    if (widgetWrap) widgetWrap.style.display = "grid";
+    if (nav) nav.style.height = "220px";
+    if (mobileApp) mobileApp.style.height = "calc(100vh - 56px - 246px)";
+  }
+  if (tab === "doclist") {
+    // 위젯 숨기기 + nav 높이 줄이기 (copyright26 + 탭바60 = 86px)
+    if (widgetWrap) widgetWrap.style.display = "none";
+    if (nav) nav.style.height = "86px";
+    if (mobileApp) mobileApp.style.height = "calc(100vh - 56px - 86px)";
+    renderDoclistView();
+  }
   if (tab === "search") {
+    if (widgetWrap) widgetWrap.style.display = "none";
+    if (nav) nav.style.height = "86px";
+    if (mobileApp) mobileApp.style.height = "calc(100vh - 56px - 86px)";
     document.querySelector(".header-search").focus();
   }
 }
