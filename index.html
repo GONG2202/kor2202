@@ -138,7 +138,7 @@
     display: none;
     position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--surface); border-top: 1px solid var(--border);
-    height: 220px; z-index: 200;
+    height: 86px; z-index: 200;
     box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
     width: 100%; max-width: 100%;
   }
@@ -170,7 +170,7 @@
   .mobile-view.visible { display: flex; }
 
   /* Mobile project list - 바둑판 그리드 */
-  .mobile-project-list { flex: 1; width: 100%; max-width: 100%; overflow: hidden; background: var(--bg); padding: 6px 8px; display: flex; flex-direction: column; }
+  .mobile-project-list { width: 100%; overflow: hidden; background: var(--bg); display: flex; flex-direction: column; }
   .mobile-project-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: repeat(4, 1fr); gap: 6px; flex: 1; overflow: hidden; }
   .mobile-doc-tile {
     background: var(--surface); border-radius: 10px; padding: 6px 4px;
@@ -553,10 +553,13 @@
   </div>
 
   <!-- VIEW 1: 프로젝트 목록 -->
-  <div class="mobile-view visible" id="mv-projects">
-    <div class="mobile-project-list" id="mobile-projectList">
+  <div class="mobile-view visible" id="mv-projects" style="flex-direction:column; overflow:hidden;">
+    <div id="mobile-projectList" style="flex:1; overflow:hidden; padding:6px 8px 4px; background:var(--bg); display:flex; flex-direction:column;">
       <!-- 그리드는 JS renderMobileProjects()가 삽입 -->
-      <!-- 날씨+달력 위젯은 그리드 아래 JS가 삽입 -->
+    </div>
+    <div id="mobile-widget-wrap" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:4px 8px 6px; background:var(--bg); flex-shrink:0;">
+      <div id="mobile-weather-widget" style="overflow:hidden;"></div>
+      <div id="mobile-cal-widget" style="overflow:hidden;"></div>
     </div>
   </div>
 
@@ -601,10 +604,6 @@
 <!-- MOBILE BOTTOM NAV -->
 <nav class="mobile-nav">
   <div class="mobile-nav-inner">
-    <div id="mobile-widget-wrap" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:4px 8px 6px; background:var(--bg);">
-      <div id="mobile-weather-widget" style="overflow:hidden;"></div>
-      <div id="mobile-cal-widget" style="overflow:hidden;"></div>
-    </div>
     <div class="copyright-bar">관리자 : 시설계획팀 &nbsp;|&nbsp; 062-605-2202 &nbsp;|&nbsp; ⓒ 한국철도공사 광주본부 시설처</div>
     <div class="mobile-nav-btns">
     <button class="mobile-nav-btn active" id="nav-home" onclick="mobileNav('home')">
@@ -1013,24 +1012,21 @@ function calNav(delta) {
 }
 
 function renderWidgets() {
+  // 달력 먼저 렌더 후 높이 측정 → 날씨 동일 높이 적용
   renderCalendarWidget('mobile-cal-widget');
-  // 달력 실제 높이 측정 후 날씨+위젯 컨테이너 높이 맞춤
   setTimeout(function() {
-    var calEl = document.getElementById('mobile-cal-widget');
-    var calCard = calEl ? calEl.querySelector('.widget-card') : null;
+    var calCard = document.querySelector('#mobile-cal-widget .widget-card');
     var calH = calCard ? calCard.offsetHeight : 160;
-    // 날씨+달력 감싸는 div 높이 조정
-    var widgetWrap = calEl ? calEl.closest('div[style*="grid-template-columns:1fr 1fr"]') : null;
-    if (widgetWrap) {
-      widgetWrap.style.height = calH + 'px';
-      var weatherEl = document.getElementById('mobile-weather-widget');
-      if (weatherEl) weatherEl.style.height = calH + 'px';
-      calEl.style.height = calH + 'px';
-    }
+    var wrap = document.getElementById('mobile-widget-wrap');
+    var weatherEl = document.getElementById('mobile-weather-widget');
+    var calEl = document.getElementById('mobile-cal-widget');
+    if (wrap) wrap.style.height = (calH + 14) + 'px'; // padding 포함
+    if (weatherEl) weatherEl.style.height = calH + 'px';
+    if (calEl) calEl.style.height = calH + 'px';
     renderWeatherWidget('mobile-weather-widget');
   }, 50);
 
-  const pcSide = document.getElementById('pc-side-widgets');
+  var pcSide = document.getElementById('pc-side-widgets');
   if (pcSide) {
     pcSide.innerHTML = '<div id="pc-weather-widget"></div><div id="pc-cal-widget"></div>';
     renderWeatherWidget('pc-weather-widget');
@@ -1341,30 +1337,9 @@ function mobileBack(to) { showMobileView(to); }
 function mobileNav(tab) {
   document.querySelectorAll(".mobile-nav-btn").forEach(b => b.classList.remove("active"));
   document.getElementById("nav-"+tab)?.classList.add("active");
-  var widgetWrap = document.getElementById("mobile-widget-wrap");
-  var nav = document.querySelector(".mobile-nav");
-  var mobileApp = document.getElementById("mobileApp");
-
-  if (tab === "home") {
-    showMobileView("projects");
-    // 위젯 보이기 + nav 높이 원래대로
-    if (widgetWrap) widgetWrap.style.display = "grid";
-    if (nav) nav.style.height = "220px";
-    if (mobileApp) mobileApp.style.height = "calc(100vh - 56px - 246px)";
-  }
-  if (tab === "doclist") {
-    // 위젯 숨기기 + nav 높이 줄이기 (copyright26 + 탭바60 = 86px)
-    if (widgetWrap) widgetWrap.style.display = "none";
-    if (nav) nav.style.height = "86px";
-    if (mobileApp) mobileApp.style.height = "calc(100vh - 56px - 86px)";
-    renderDoclistView();
-  }
-  if (tab === "search") {
-    if (widgetWrap) widgetWrap.style.display = "none";
-    if (nav) nav.style.height = "86px";
-    if (mobileApp) mobileApp.style.height = "calc(100vh - 56px - 86px)";
-    document.querySelector(".header-search").focus();
-  }
+  if (tab === "home") showMobileView("projects");
+  if (tab === "doclist") renderDoclistView();
+  if (tab === "search") document.querySelector(".header-search").focus();
 }
 
 // ── SEARCH ──
