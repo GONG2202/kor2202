@@ -399,7 +399,7 @@
   .widget-card {
     background: var(--surface); border-radius: 12px;
     padding: 8px 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    height: 100%; overflow: hidden;
+    overflow: hidden;
   }
   .weather-icon { font-size: 22px; text-align: center; margin-bottom: 2px; }
   .weather-temp { font-size: 17px; font-weight: 800; color: var(--brand); text-align: center; }
@@ -411,7 +411,7 @@
   .weather-detail-val { font-size: 11px; font-weight: 700; color: var(--text); }
 
   /* 시간별 예보 */
-  .weather-hourly { margin-top: 6px; border-top: 1px solid var(--border); padding-top: 5px; }
+  .weather-hourly { display: none; }
   .weather-hourly-title { font-size: 8px; font-weight: 700; color: var(--muted); margin-bottom: 4px; letter-spacing: 0.5px; }
   .weather-hourly-row { display: flex; justify-content: space-between; gap: 3px; }
   .weather-hour-item {
@@ -545,7 +545,7 @@
 </div>
 
 <!-- MOBILE VIEWS -->
-<div id="mobileApp" style="display:none; flex-direction:column; width:100%; max-width:100%; height:calc(100vh - 56px - 246px); overflow:hidden; position:relative;">
+<div id="mobileApp" style="display:none; flex-direction:column; width:100%; max-width:100%; height:calc(100vh - 56px - 86px); overflow:hidden; position:relative;">
 
   <!-- NOTICE -->
   <div class="notice-banner" id="mobileNotice">
@@ -601,9 +601,9 @@
 <!-- MOBILE BOTTOM NAV -->
 <nav class="mobile-nav">
   <div class="mobile-nav-inner">
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:4px 8px 0; background:var(--bg); height:160px;">
-      <div id="mobile-weather-widget" style="height:160px; overflow:hidden;"></div>
-      <div id="mobile-cal-widget" style="height:160px; overflow:hidden;"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:4px 8px 2px; background:var(--bg);">
+      <div id="mobile-weather-widget" style="overflow:hidden;"></div>
+      <div id="mobile-cal-widget" style="overflow:hidden;"></div>
     </div>
     <div class="copyright-bar">관리자 : 시설계획팀 &nbsp;|&nbsp; 062-605-2202 &nbsp;|&nbsp; ⓒ 한국철도공사 광주본부 시설처</div>
     <div class="mobile-nav-btns">
@@ -1013,8 +1013,23 @@ function calNav(delta) {
 }
 
 function renderWidgets() {
-  renderWeatherWidget('mobile-weather-widget');
   renderCalendarWidget('mobile-cal-widget');
+  // 달력 실제 높이 측정 후 날씨+위젯 컨테이너 높이 맞춤
+  setTimeout(function() {
+    var calEl = document.getElementById('mobile-cal-widget');
+    var calCard = calEl ? calEl.querySelector('.widget-card') : null;
+    var calH = calCard ? calCard.offsetHeight : 160;
+    // 날씨+달력 감싸는 div 높이 조정
+    var widgetWrap = calEl ? calEl.closest('div[style*="grid-template-columns:1fr 1fr"]') : null;
+    if (widgetWrap) {
+      widgetWrap.style.height = calH + 'px';
+      var weatherEl = document.getElementById('mobile-weather-widget');
+      if (weatherEl) weatherEl.style.height = calH + 'px';
+      calEl.style.height = calH + 'px';
+    }
+    renderWeatherWidget('mobile-weather-widget');
+  }, 50);
+
   const pcSide = document.getElementById('pc-side-widgets');
   if (pcSide) {
     pcSide.innerHTML = '<div id="pc-weather-widget"></div><div id="pc-cal-widget"></div>';
