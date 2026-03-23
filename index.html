@@ -1052,9 +1052,11 @@ async function saveLayout() {
   try {
     await fetch(SHEET_API, {
       method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ action: 'saveLayout', layout: LAYOUT })
     });
-  } catch(e) {}
+  } catch(e) { console.error('saveLayout 실패:', e); }
 }
 
 async function loadDocsFromSheet() {
@@ -1408,6 +1410,8 @@ async function addDocument() {
   try {
     await fetch(SHEET_API, {
       method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({ action:"add", title:name, team:project, date, url, desc:"" })
     });
     await loadDocsFromSheet();
@@ -1477,6 +1481,8 @@ function doDelete() {
   const idToDelete = deleteTargetId;
   fetch(SHEET_API, {
     method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain" },
     body: JSON.stringify({ action:"delete", id: idToDelete })
   }).then(() => loadDocsFromSheet()).then(() => {
     updateCounts();
