@@ -1258,39 +1258,54 @@ function renderDoclistView() {
 }
 
 function showDocActions(name, pdfUrl, rawUrl) {
-  // 기존 모달 있으면 제거
   var existing = document.getElementById('docActionsModal');
   if (existing) existing.remove();
 
   var modal = document.createElement('div');
   modal.id = 'docActionsModal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:flex-end;';
-  modal.innerHTML =
-    '<div style="background:#fff;width:100%;border-radius:20px 20px 0 0;padding:20px 20px 36px;">' +
-      '<div style="font-size:14px;font-weight:800;color:#1a1e2e;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📄 ' + name + '</div>' +
-      '<div style="font-size:11px;color:#7a8499;margin-bottom:20px;">열람 방법을 선택하세요</div>' +
-      '<div style="display:flex;gap:10px;margin-bottom:12px;">' +
-        '<button onclick="window.open('' + pdfUrl + '','_blank');document.getElementById('docActionsModal').remove();" ' +
-          'style="flex:1;background:var(--brand);color:#fff;border:none;border-radius:12px;padding:16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">' +
-          '👁️ 바로보기' +
-        '</button>' +
-        '<button onclick="window.open('' + rawUrl + '','_blank');document.getElementById('docActionsModal').remove();" ' +
-          'style="flex:1;background:#f4f6fa;color:var(--brand);border:2px solid var(--brand);border-radius:12px;padding:16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">' +
-          '⬇️ 다운로드' +
-        '</button>' +
-      '</div>' +
-      '<button onclick="document.getElementById('docActionsModal').remove();" ' +
-        'style="width:100%;background:#f4f6fa;color:#7a8499;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">' +
-        '취소' +
-      '</button>' +
-    '</div>';
 
-  // 배경 클릭시 닫기
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) modal.remove();
-  });
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;width:100%;border-radius:20px 20px 0 0;padding:20px 20px 36px;';
 
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:14px;font-weight:800;color:#1a1e2e;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+  title.textContent = '📄 ' + name;
+
+  var sub = document.createElement('div');
+  sub.style.cssText = 'font-size:11px;color:#7a8499;margin-bottom:20px;';
+  sub.textContent = '열람 방법을 선택하세요';
+
+  var btnWrap = document.createElement('div');
+  btnWrap.style.cssText = 'display:flex;gap:10px;margin-bottom:12px;';
+
+  var btnView = document.createElement('button');
+  btnView.style.cssText = 'flex:1;background:var(--brand);color:#fff;border:none;border-radius:12px;padding:16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;';
+  btnView.textContent = '👁️ 바로보기';
+  btnView.onclick = function() { window.open(pdfUrl, '_blank'); modal.remove(); };
+
+  var btnDown = document.createElement('button');
+  btnDown.style.cssText = 'flex:1;background:#f4f6fa;color:var(--brand);border:2px solid var(--brand);border-radius:12px;padding:16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;';
+  btnDown.textContent = '⬇️ 다운로드';
+  btnDown.onclick = function() { window.open(rawUrl, '_blank'); modal.remove(); };
+
+  var btnCancel = document.createElement('button');
+  btnCancel.style.cssText = 'width:100%;background:#f4f6fa;color:#7a8499;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;';
+  btnCancel.textContent = '취소';
+  btnCancel.onclick = function() { modal.remove(); };
+
+  btnWrap.appendChild(btnView);
+  btnWrap.appendChild(btnDown);
+  inner.appendChild(title);
+  inner.appendChild(sub);
+  inner.appendChild(btnWrap);
+  inner.appendChild(btnCancel);
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
   document.body.appendChild(modal);
+  // 아래줄은 삭제용 더미
+  var _dummy =
+  '';
 }
 
 function showSlotPicker(docId) {
