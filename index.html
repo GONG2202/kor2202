@@ -601,7 +601,7 @@
 <!-- MOBILE BOTTOM NAV -->
 <nav class="mobile-nav">
   <div class="mobile-nav-inner">
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:4px 8px 2px; background:var(--bg);">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:4px 8px 6px; background:var(--bg);">
       <div id="mobile-weather-widget" style="overflow:hidden;"></div>
       <div id="mobile-cal-widget" style="overflow:hidden;"></div>
     </div>
@@ -1200,7 +1200,16 @@ function renderMobileProjects() {
       </div>`;
     }
   }
-  list.innerHTML = `<div class="mobile-project-grid">${tiles}</div>`;
+  list.innerHTML = '<div class="mobile-project-grid" id="main-doc-grid">' + tiles + '</div>';
+  // 그리드 높이 = 가용 공간 (list 높이)
+  setTimeout(function() {
+    var listEl = document.getElementById('mobile-projectList');
+    var gridEl = document.getElementById('main-doc-grid');
+    if (listEl && gridEl) {
+      var availH = listEl.clientHeight - 12; // padding 제외
+      gridEl.style.height = availH + 'px';
+    }
+  }, 30);
   renderWeatherWidget('mobile-weather-widget');
   renderCalendarWidget('mobile-cal-widget');
 }
@@ -1265,6 +1274,10 @@ function showSlotPicker(docId) {
 }
 
 async function assignSlot(docId, slotIndex) {
+  // 이미 같은 문서가 다른 슬롯에 있으면 제거 (중복 방지)
+  Object.keys(LAYOUT).forEach(k => {
+    if (String(LAYOUT[k]) === String(docId)) delete LAYOUT[k];
+  });
   LAYOUT[String(slotIndex)] = String(docId);
   document.getElementById('slotPickerModal')?.remove();
   await saveLayout();
