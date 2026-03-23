@@ -1414,12 +1414,15 @@ function showAddFromTile(slotIndex) {
 }
 
 function showAddTileModal(slotIndex) {
-  // adminModal 재활용 - 추가 후 해당 슬롯에 자동 배치
   _pendingSlot = slotIndex;
+  // adminModal 열기 전 초기화
   document.getElementById('addName').value = '';
   document.getElementById('addUrl').value = '';
   document.getElementById('addDate').value = new Date().toISOString().split('T')[0];
-  document.getElementById('adminModal').classList.add('open');
+  // adminModal 표시
+  var modal = document.getElementById('adminModal');
+  modal.style.display = 'flex';
+  modal.classList.add('open');
 }
 
 var _pendingSlot = null;
@@ -1427,7 +1430,9 @@ var _pendingSlot = null;
 function showAdmin() {
   document.getElementById("pwError").style.display = "none";
   document.getElementById("pwInput").value = "";
-  document.getElementById("pwModal").classList.add("open");
+  var modal = document.getElementById("pwModal");
+  modal.style.display = 'flex';
+  modal.classList.add("open");
   setTimeout(function(){ document.getElementById("pwInput").focus(); }, 100);
 }
 function closePw() {
@@ -1439,14 +1444,21 @@ function checkPw() {
   var pw = document.getElementById("pwInput").value;
   if (pw === "kor156487-") {
     closePw();
-    document.getElementById("adminModal").classList.add("open");
+    var modal = document.getElementById("adminModal");
+    modal.style.display = 'flex';
+    modal.classList.add("open");
   } else {
     document.getElementById("pwError").style.display = "block";
     document.getElementById("pwInput").value = "";
     document.getElementById("pwInput").focus();
   }
 }
-function closeAdmin() { document.getElementById("adminModal").classList.remove("open"); }
+function closeAdmin() { 
+  var modal = document.getElementById("adminModal");
+  modal.classList.remove("open");
+  modal.style.display = '';
+  _pendingSlot = null;
+}
 
 async function addDocument() {
   const name = document.getElementById("addName").value.trim();
@@ -1617,7 +1629,7 @@ if ('serviceWorker' in navigator) {
 </div>
 
 <!-- 타일/배치 비밀번호 모달 -->
-<div id="tilePwModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+<div id="tilePwModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:#fff; border-radius:16px; padding:28px 24px; width:300px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
     <div style="font-size:16px; font-weight:800; color:var(--brand); margin-bottom:16px; text-align:center;">🔒 관리자 인증</div>
     <input id="tilePwInput" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')checkTilePw()"
