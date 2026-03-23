@@ -1235,7 +1235,10 @@ function renderDoclistView() {
         '<div style="font-size:10px;color:#7a8499;margin-top:2px;">' + (PROJECT_NAMES[doc.project]||'') + ' · ' + doc.date + '</div>' +
         '<div style="font-size:10px;font-weight:700;color:' + slotColor + ';margin-top:2px;">📌 ' + slotLabel + '</div>' +
       '</div>' +
-      '<button class="doclist-assign" data-id="' + doc.id + '" style="background:var(--brand);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">배치</button>' +
+      '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">' +
+        '<button class="doclist-assign" data-id="' + doc.id + '" style="background:var(--brand);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">배치</button>' +
+        '<button class="doclist-delete" data-id="' + doc.id + '" style="background:#fff;color:#e53935;border:1px solid #e53935;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">삭제</button>' +
+      '</div>' +
     '</div>';
   });
   body.innerHTML = cards.join('');
@@ -1253,6 +1256,12 @@ function renderDoclistView() {
     el.addEventListener('click', function() {
       var id = this.getAttribute('data-id');
       showPwForAction('slot', id);
+    });
+  });
+  body.querySelectorAll('.doclist-delete').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var id = this.getAttribute('data-id');
+      confirmDelete(id);
     });
   });
 }
