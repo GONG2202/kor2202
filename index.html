@@ -1050,12 +1050,10 @@ async function loadLayout() {
 
 async function saveLayout() {
   try {
-    await fetch(SHEET_API, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'saveLayout', layout: LAYOUT })
-    });
+    // GET 방식으로 layout 저장 (CORS 우회)
+    var layoutStr = encodeURIComponent(JSON.stringify(LAYOUT));
+    var url = SHEET_API + '?action=saveLayout&layout=' + layoutStr;
+    await fetch(url);
   } catch(e) { console.error('saveLayout 실패:', e); }
 }
 
