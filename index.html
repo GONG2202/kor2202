@@ -1211,7 +1211,6 @@ function renderMobileProjects() {
 }
 
 function renderDoclistView() {
-  showMobileView("doclist");
   const body = document.getElementById("mobile-doclist-body");
   const badge = document.getElementById("mobile-doclist-count");
   badge.textContent = DOCS.length;
@@ -1235,9 +1234,9 @@ function renderDoclistView() {
         '<div style="font-size:10px;color:#7a8499;margin-top:2px;">' + (PROJECT_NAMES[doc.project]||'') + ' · ' + doc.date + '</div>' +
         '<div style="font-size:10px;font-weight:700;color:' + slotColor + ';margin-top:2px;">📌 ' + slotLabel + '</div>' +
       '</div>' +
-      '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">' +
-        '<button class="doclist-assign" data-id="' + doc.id + '" style="background:var(--brand);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">배치</button>' +
-        '<button class="doclist-delete" data-id="' + doc.id + '" style="background:#fff;color:#e53935;border:1px solid #e53935;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">삭제</button>' +
+      '<div style="display:flex;flex-direction:row;gap:4px;flex-shrink:0;">' +
+        '<button class="doclist-assign" data-id="' + doc.id + '" style="background:var(--brand);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">배치</button>' +
+        '<button class="doclist-delete" data-id="' + doc.id + '" style="background:#fff;color:#e53935;border:1.5px solid #e53935;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">삭제</button>' +
       '</div>' +
     '</div>';
   });
@@ -1412,7 +1411,7 @@ function mobileNav(tab) {
   document.querySelectorAll(".mobile-nav-btn").forEach(b => b.classList.remove("active"));
   document.getElementById("nav-"+tab)?.classList.add("active");
   if (tab === "home") showMobileView("projects");
-  if (tab === "doclist") renderDoclistView();
+  if (tab === "doclist") { showMobileView("doclist"); renderDoclistView(); }
   if (tab === "search") document.querySelector(".header-search").focus();
 }
 
