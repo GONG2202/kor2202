@@ -1602,15 +1602,19 @@ let deleteTargetId = null;
 function confirmDelete(id) {
   const doc = DOCS.find(d => String(d.id) === String(id));
   if (!doc) return;
-  deleteTargetId = id;
+  deleteTargetId = String(id);
   document.getElementById('deleteDocName').textContent = doc.name;
   document.getElementById('deletePwInput').value = '';
   document.getElementById('deletePwError').style.display = 'none';
-  document.getElementById('deleteConfirmModal').classList.add('open');
+  var modal = document.getElementById('deleteConfirmModal');
+  modal.style.display = 'flex';
+  modal.classList.add('open');
   setTimeout(function(){ document.getElementById('deletePwInput').focus(); }, 100);
 }
 function closeDeleteModal() {
-  document.getElementById('deleteConfirmModal').classList.remove('open');
+  var modal = document.getElementById('deleteConfirmModal');
+  modal.classList.remove('open');
+  modal.style.display = 'none';
   document.getElementById('deletePwInput').value = '';
   document.getElementById('deletePwError').style.display = 'none';
   deleteTargetId = null;
@@ -1624,16 +1628,18 @@ function doDelete() {
     document.getElementById('deletePwInput').focus();
     return;
   }
-  // 앱에서만 삭제 (구글 시트는 유지)
-  const idToDelete = deleteTargetId;
-  DOCS = DOCS.filter(d => String(d.id) !== String(idToDelete));
-  // layout에서도 해당 슬롯 제거
+  const idToDelete = String(deleteTargetId);
+  // 앱에서만 삭제
+  DOCS = DOCS.filter(d => String(d.id) !== idToDelete);
+  // layout 슬롯 제거
   Object.keys(LAYOUT).forEach(k => {
-    if (String(LAYOUT[k]) === String(idToDelete)) delete LAYOUT[k];
+    if (String(LAYOUT[k]) === idToDelete) delete LAYOUT[k];
   });
-  if (String(pcDocId) === String(idToDelete)) pcShowEmpty();
+  if (String(pcDocId) === idToDelete) pcShowEmpty();
   deleteTargetId = null;
-  document.getElementById('deleteConfirmModal').classList.remove('open');
+  var modal = document.getElementById('deleteConfirmModal');
+  modal.classList.remove('open');
+  modal.style.display = 'none';
   document.getElementById('deletePwInput').value = '';
   updateCounts();
   pcRenderDocs(pcProject, searchQuery);
