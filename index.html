@@ -138,7 +138,7 @@
     display: none;
     position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--surface); border-top: 1px solid var(--border);
-    height: 86px; z-index: 200;
+    height: 220px; z-index: 200;
     box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
     width: 100%; max-width: 100%;
   }
@@ -172,21 +172,16 @@
   /* Mobile project list - 바둑판 그리드 */
   .mobile-project-list { flex: 1; width: 100%; max-width: 100%; overflow-y: auto; background: var(--bg); padding: 8px 10px; }
   .mobile-project-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
-  .mobile-project-card {
-    background: var(--surface); border-radius: 12px; padding: 8px 4px 8px;
-    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  .mobile-doc-tile {
+    background: var(--surface); border-radius: 12px; padding: 8px 6px;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.07); transition: all 0.15s;
-    border: 2px solid transparent; text-align: center;
+    border: 2px solid transparent; text-align: center; aspect-ratio: 1;
   }
-  .mobile-project-card:active, .mobile-project-card.active { border-color: var(--brand); background: #eef2fb; }
-  .mobile-project-icon {
-    width: 38px; height: 38px; border-radius: 11px;
-    display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
-  }
-  .mobile-project-info { width: 100%; }
-  .mobile-project-name { font-size: 10px; font-weight: 700; color: var(--text); }
-  .mobile-project-sub { font-size: 9px; color: var(--muted); margin-top: 1px; }
-  .mobile-project-arrow { display: none; }
+  .mobile-doc-tile:active { border-color: var(--brand); background: #eef2fb; transform: scale(0.96); }
+  .mobile-doc-tile-icon { font-size: 22px; line-height: 1; }
+  .mobile-doc-tile-name { font-size: 9px; font-weight: 700; color: var(--text); line-height: 1.3; word-break: keep-all; }
+  .mobile-doc-tile-team { font-size: 8px; color: var(--muted); }
 
   /* Mobile doc list */
   .mobile-doc-header {
@@ -404,6 +399,7 @@
   .widget-card {
     background: var(--surface); border-radius: 12px;
     padding: 8px 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    height: 100%;
   }
   .weather-icon { font-size: 22px; text-align: center; margin-bottom: 2px; }
   .weather-temp { font-size: 17px; font-weight: 800; color: var(--brand); text-align: center; }
@@ -549,7 +545,7 @@
 </div>
 
 <!-- MOBILE VIEWS -->
-<div id="mobileApp" style="display:none; flex-direction:column; width:100%; max-width:100%; height:calc(100vh - 56px - 86px); overflow:hidden; position:relative;">
+<div id="mobileApp" style="display:none; flex-direction:column; width:100%; max-width:100%; height:calc(100vh - 56px - 220px); overflow:hidden; position:relative;">
 
   <!-- NOTICE -->
   <div class="notice-banner" id="mobileNotice">
@@ -562,6 +558,15 @@
       <!-- 그리드는 JS renderMobileProjects()가 삽입 -->
       <!-- 날씨+달력 위젯은 그리드 아래 JS가 삽입 -->
     </div>
+  </div>
+
+  <!-- VIEW 4: 문서목록 (탭) -->
+  <div class="mobile-view" id="mv-doclist">
+    <div class="mobile-doc-header">
+      <span class="mobile-doc-title">📋 문서 목록</span>
+      <span class="panel-badge" id="mobile-doclist-count">0</span>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:10px; background:var(--bg);" id="mobile-doclist-body"></div>
   </div>
 
   <!-- VIEW 2: 문서 목록 -->
@@ -596,6 +601,10 @@
 <!-- MOBILE BOTTOM NAV -->
 <nav class="mobile-nav">
   <div class="mobile-nav-inner">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:4px 10px 0; background:var(--bg);">
+      <div id="mobile-weather-widget"></div>
+      <div id="mobile-cal-widget"></div>
+    </div>
     <div class="copyright-bar">관리자 : 시설계획팀 &nbsp;|&nbsp; 062-605-2202 &nbsp;|&nbsp; ⓒ 한국철도공사 광주본부 시설처</div>
     <div class="mobile-nav-btns">
     <button class="mobile-nav-btn active" id="nav-home" onclick="mobileNav('home')">
@@ -606,9 +615,9 @@
       <span class="nav-icon">🔍</span>
       <span class="nav-label">검색</span>
     </button>
-    <button class="mobile-nav-btn" id="nav-admin" onclick="addToHomeScreen()">
-      <span class="nav-icon">📲</span>
-      <span class="nav-label">홈화면추가</span>
+    <button class="mobile-nav-btn" id="nav-doclist" onclick="mobileNav('doclist')">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">문서목록</span>
     </button>
     </div>
   </div>
@@ -1018,6 +1027,25 @@ function renderWidgets() {
 const SHEET_API = "https://script.google.com/macros/s/AKfycbzH-rH07ES7S4fOmVT4qtw_9a571ESooR_Lh6FKXPUxb-vMvo_UiKh9j9FNHGEx_Gvh/exec";
 let DOCS = [];
 
+// ── LAYOUT ──
+let LAYOUT = {}; // { "0": docId, "1": docId, ... } 슬롯번호:문서id
+
+async function loadLayout() {
+  try {
+    const res = await fetch(SHEET_API + '?action=getLayout');
+    LAYOUT = await res.json();
+  } catch(e) { LAYOUT = {}; }
+}
+
+async function saveLayout() {
+  try {
+    await fetch(SHEET_API, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveLayout', layout: LAYOUT })
+    });
+  } catch(e) {}
+}
+
 async function loadDocsFromSheet() {
   try {
     const res = await fetch(SHEET_API);
@@ -1054,6 +1082,7 @@ async function init() {
 
   // 구글 시트에서 문서 로드
   await loadDocsFromSheet();
+  await loadLayout();
 
   updateCounts();
   pcRenderDocs("all");
@@ -1135,36 +1164,97 @@ function pcShowEmpty() {
 
 // ── MOBILE ──
 function renderMobileProjects() {
-  const projects = [
-    { key:"all", emoji:"📂", color:"#607d8b" },
-    { key:"alpha", emoji:"📋", color:PROJECT_COLORS.alpha },
-    { key:"beta", emoji:"🛤️", color:PROJECT_COLORS.beta },
-    { key:"gamma", emoji:"🏗️", color:PROJECT_COLORS.gamma },
-    { key:"hr", emoji:"🌉", color:PROJECT_COLORS.hr },
-    { key:"finance", emoji:"🏢", color:PROJECT_COLORS.finance },
-  ];
   const list = document.getElementById("mobile-projectList");
-  const cards = projects.map(p => {
-    const count = p.key === "all" ? DOCS.length : DOCS.filter(d => d.project === p.key).length;
-    return `
-    <div class="mobile-project-card" onclick="mobileSelectProject('${p.key}')">
-      <div class="mobile-project-icon" style="background:${p.color}22;">${p.emoji}</div>
-      <div class="mobile-project-info">
-        <div class="mobile-project-name">${PROJECT_NAMES[p.key]}</div>
-        <div class="mobile-project-sub">문서 ${count}개</div>
-      </div>
-    </div>`;
-  }).join("");
-  list.innerHTML = `
-    <div class="mobile-project-grid">${cards}</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:10px 0 4px;">
-      <div id="mobile-weather-widget"></div>
-      <div id="mobile-cal-widget"></div>
-    </div>
-  `;
-  // 위젯 렌더링
+  let tiles = '';
+  for (let i = 0; i < 12; i++) {
+    const docId = LAYOUT[String(i)];
+    const doc = docId ? DOCS.find(d => String(d.id) === String(docId)) : null;
+    if (doc) {
+      const color = PROJECT_COLORS[doc.project] || '#607d8b';
+      const emoji = PROJECT_EMOJIS[doc.project] || '📄';
+      const pdfUrl = toPdfViewUrl(doc.url);
+      tiles += `<div class="mobile-doc-tile" onclick="window.open('${pdfUrl}','_blank')" style="border-top:3px solid ${color};">
+        <div class="mobile-doc-tile-icon">${emoji}</div>
+        <div class="mobile-doc-tile-name">${doc.name}</div>
+        <div class="mobile-doc-tile-team">${PROJECT_NAMES[doc.project]||''}</div>
+      </div>`;
+    } else {
+      tiles += `<div class="mobile-doc-tile" style="border-top:3px solid #ddd; opacity:0.4;">
+        <div class="mobile-doc-tile-icon">➕</div>
+        <div class="mobile-doc-tile-name" style="color:#bbb;">빈 칸</div>
+      </div>`;
+    }
+  }
+  list.innerHTML = `<div class="mobile-project-grid">${tiles}</div>`;
   renderWeatherWidget('mobile-weather-widget');
   renderCalendarWidget('mobile-cal-widget');
+}
+
+function renderDoclistView() {
+  showMobileView("doclist");
+  const body = document.getElementById("mobile-doclist-body");
+  const badge = document.getElementById("mobile-doclist-count");
+  badge.textContent = DOCS.length;
+
+  if (DOCS.length === 0) {
+    body.innerHTML = '<div style="padding:30px;text-align:center;color:#aaa;font-size:13px;">등록된 문서가 없습니다</div>';
+    return;
+  }
+
+  body.innerHTML = DOCS.map(doc => {
+    const color = PROJECT_COLORS[doc.project] || '#607d8b';
+    const emoji = PROJECT_EMOJIS[doc.project] || '📄';
+    // 현재 배치된 슬롯 찾기
+    const slot = Object.entries(LAYOUT).find(([k,v]) => String(v) === String(doc.id));
+    const slotLabel = slot ? (parseInt(slot[0])+1) + '번 칸' : '미배치';
+    const slotColor = slot ? '#2e7d32' : '#aaa';
+    return `<div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+      <div style="width:38px;height:38px;border-radius:10px;background:${color}22;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${emoji}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;color:#1a1e2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${doc.name}</div>
+        <div style="font-size:10px;color:#7a8499;margin-top:2px;">${PROJECT_NAMES[doc.project]||''} · ${doc.date}</div>
+        <div style="font-size:10px;font-weight:700;color:${slotColor};margin-top:2px;">📌 ${slotLabel}</div>
+      </div>
+      <button onclick="showSlotPicker('${doc.id}')" style="background:var(--brand);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">배치</button>
+    </div>`;
+  }).join('');
+}
+
+function showSlotPicker(docId) {
+  const doc = DOCS.find(d => String(d.id) === String(docId));
+  if (!doc) return;
+
+  // 슬롯 선택 모달
+  let slots = '';
+  for (let i = 0; i < 12; i++) {
+    const occupied = LAYOUT[String(i)];
+    const occDoc = occupied ? DOCS.find(d => String(d.id) === String(occupied)) : null;
+    const label = occDoc ? occDoc.name.slice(0,6)+'…' : '빈 칸';
+    const bg = occupied ? '#fff3e0' : '#f4f6fa';
+    slots += `<div onclick="assignSlot('${docId}', ${i})" style="background:${bg};border:1px solid #e2e6f0;border-radius:8px;padding:8px 4px;text-align:center;cursor:pointer;font-size:10px;">
+      <div style="font-weight:700;color:var(--brand);">${i+1}번</div>
+      <div style="color:#7a8499;margin-top:2px;font-size:9px;">${label}</div>
+    </div>`;
+  }
+
+  const modal = document.createElement('div');
+  modal.id = 'slotPickerModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-end;';
+  modal.innerHTML = `<div style="background:#fff;width:100%;border-radius:20px 20px 0 0;padding:20px 16px 30px;">
+    <div style="font-size:15px;font-weight:800;color:var(--brand);margin-bottom:4px;">배치할 칸 선택</div>
+    <div style="font-size:12px;color:#7a8499;margin-bottom:14px;">${doc.name}</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px;">${slots}</div>
+    <button onclick="document.getElementById('slotPickerModal').remove()" style="width:100%;background:#f4f6fa;color:#7a8499;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">취소</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+async function assignSlot(docId, slotIndex) {
+  LAYOUT[String(slotIndex)] = String(docId);
+  document.getElementById('slotPickerModal')?.remove();
+  await saveLayout();
+  renderMobileProjects();
+  renderDoclistView();
 }
 
 function mobileSelectProject(proj) {
@@ -1213,7 +1303,7 @@ function mobileOpenDoc(id) {
 }
 
 function showMobileView(view) {
-  ["projects","docs","viewer"].forEach(v => {
+  ["projects","docs","viewer","doclist"].forEach(v => {
     document.getElementById("mv-"+v).classList.toggle("visible", v === view);
   });
 }
@@ -1224,6 +1314,7 @@ function mobileNav(tab) {
   document.querySelectorAll(".mobile-nav-btn").forEach(b => b.classList.remove("active"));
   document.getElementById("nav-"+tab)?.classList.add("active");
   if (tab === "home") showMobileView("projects");
+  if (tab === "doclist") renderDoclistView();
   if (tab === "search") {
     document.querySelector(".header-search").focus();
   }
