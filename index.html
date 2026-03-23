@@ -1600,7 +1600,7 @@ document.addEventListener('keydown', function(e) {
 // ── 삭제 ──
 let deleteTargetId = null;
 function confirmDelete(id) {
-  const doc = DOCS.find(d => d.id === id);
+  const doc = DOCS.find(d => String(d.id) === String(id));
   if (!doc) return;
   deleteTargetId = id;
   document.getElementById('deleteDocName').textContent = doc.name;
@@ -1631,7 +1631,7 @@ function doDelete() {
   Object.keys(LAYOUT).forEach(k => {
     if (String(LAYOUT[k]) === String(idToDelete)) delete LAYOUT[k];
   });
-  if (pcDocId === idToDelete) pcShowEmpty();
+  if (String(pcDocId) === String(idToDelete)) pcShowEmpty();
   deleteTargetId = null;
   document.getElementById('deleteConfirmModal').classList.remove('open');
   document.getElementById('deletePwInput').value = '';
