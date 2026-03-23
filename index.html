@@ -1229,16 +1229,53 @@ function renderDoclistView() {
     const slotLabel = slot ? (parseInt(slot[0])+1) + '번 칸' : '미배치';
     const slotColor = slot ? '#2e7d32' : '#aaa';
     const pdfUrl = toPdfViewUrl(doc.url);
+    const rawUrl = doc.url;
     return `<div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-      <div onclick="window.open('${pdfUrl}','_blank')" style="width:38px;height:38px;border-radius:10px;background:${color}22;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;cursor:pointer;">${emoji}</div>
-      <div style="flex:1;min-width:0;cursor:pointer;" onclick="window.open('${pdfUrl}','_blank')">
+      <div onclick="showDocActions('${doc.name}','${pdfUrl}','${rawUrl}')" style="width:38px;height:38px;border-radius:10px;background:${color}22;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;cursor:pointer;">${emoji}</div>
+      <div style="flex:1;min-width:0;cursor:pointer;" onclick="showDocActions('${doc.name}','${pdfUrl}','${rawUrl}')">
         <div style="font-size:12px;font-weight:700;color:#1a1e2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${doc.name}</div>
         <div style="font-size:10px;color:#7a8499;margin-top:2px;">${PROJECT_NAMES[doc.project]||''} · ${doc.date}</div>
-        <div style="font-size:10px;font-weight:700;color:${slotColor};margin-top:2px;">📌 ${slotLabel} · 📄 탭하면 열림</div>
+        <div style="font-size:10px;font-weight:700;color:${slotColor};margin-top:2px;">📌 ${slotLabel}</div>
       </div>
       <button onclick="showPwForAction('slot','${doc.id}')" style="background:var(--brand);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">배치</button>
     </div>`;
   }).join('');
+}
+
+function showDocActions(name, pdfUrl, rawUrl) {
+  // 기존 모달 있으면 제거
+  var existing = document.getElementById('docActionsModal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'docActionsModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:flex-end;';
+  modal.innerHTML =
+    '<div style="background:#fff;width:100%;border-radius:20px 20px 0 0;padding:20px 20px 36px;">' +
+      '<div style="font-size:14px;font-weight:800;color:#1a1e2e;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📄 ' + name + '</div>' +
+      '<div style="font-size:11px;color:#7a8499;margin-bottom:20px;">열람 방법을 선택하세요</div>' +
+      '<div style="display:flex;gap:10px;margin-bottom:12px;">' +
+        '<button onclick="window.open('' + pdfUrl + '','_blank');document.getElementById('docActionsModal').remove();" ' +
+          'style="flex:1;background:var(--brand);color:#fff;border:none;border-radius:12px;padding:16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">' +
+          '👁️ 바로보기' +
+        '</button>' +
+        '<button onclick="window.open('' + rawUrl + '','_blank');document.getElementById('docActionsModal').remove();" ' +
+          'style="flex:1;background:#f4f6fa;color:var(--brand);border:2px solid var(--brand);border-radius:12px;padding:16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">' +
+          '⬇️ 다운로드' +
+        '</button>' +
+      '</div>' +
+      '<button onclick="document.getElementById('docActionsModal').remove();" ' +
+        'style="width:100%;background:#f4f6fa;color:#7a8499;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">' +
+        '취소' +
+      '</button>' +
+    '</div>';
+
+  // 배경 클릭시 닫기
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) modal.remove();
+  });
+
+  document.body.appendChild(modal);
 }
 
 function showSlotPicker(docId) {
