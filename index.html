@@ -1190,8 +1190,8 @@ function renderMobileProjects() {
         <div class="mobile-doc-tile-team">${PROJECT_NAMES[doc.project]||''}</div>
       </div>`;
     } else {
-      tiles += `<div class="mobile-doc-tile" style="border-top:3px solid #ddd; opacity:0.4;">
-        <div class="mobile-doc-tile-icon">➕</div>
+      tiles += `<div class="mobile-doc-tile" onclick="showAddFromTile(${i})" style="border-top:3px solid #ddd; cursor:pointer;">
+        <div class="mobile-doc-tile-icon" style="opacity:0.4;">➕</div>
         <div class="mobile-doc-tile-name" style="color:#bbb;">빈 칸</div>
       </div>`;
     }
@@ -1228,14 +1228,15 @@ function renderDoclistView() {
     const slot = Object.entries(LAYOUT).find(([k,v]) => String(v) === String(doc.id));
     const slotLabel = slot ? (parseInt(slot[0])+1) + '번 칸' : '미배치';
     const slotColor = slot ? '#2e7d32' : '#aaa';
+    const pdfUrl = toPdfViewUrl(doc.url);
     return `<div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-      <div style="width:38px;height:38px;border-radius:10px;background:${color}22;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${emoji}</div>
-      <div style="flex:1;min-width:0;">
+      <div onclick="window.open('${pdfUrl}','_blank')" style="width:38px;height:38px;border-radius:10px;background:${color}22;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;cursor:pointer;">${emoji}</div>
+      <div style="flex:1;min-width:0;cursor:pointer;" onclick="window.open('${pdfUrl}','_blank')">
         <div style="font-size:12px;font-weight:700;color:#1a1e2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${doc.name}</div>
         <div style="font-size:10px;color:#7a8499;margin-top:2px;">${PROJECT_NAMES[doc.project]||''} · ${doc.date}</div>
-        <div style="font-size:10px;font-weight:700;color:${slotColor};margin-top:2px;">📌 ${slotLabel}</div>
+        <div style="font-size:10px;font-weight:700;color:${slotColor};margin-top:2px;">📌 ${slotLabel} · 📄 탭하면 열림</div>
       </div>
-      <button onclick="showSlotPicker('${doc.id}')" style="background:var(--brand);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">배치</button>
+      <button onclick="showPwForAction('slot','${doc.id}')" style="background:var(--brand);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">배치</button>
     </div>`;
   }).join('');
 }
@@ -1370,6 +1371,55 @@ function closeDrawer() {
 }
 
 // ── ADMIN ──
+// 비밀번호 확인 후 액션 실행 공통 함수
+var _pwAction = null;
+var _pwParam = null;
+
+function showPwForAction(action, param) {
+  _pwAction = action;
+  _pwParam = param;
+  // 공통 비밀번호 모달 재활용
+  var overlay = document.getElementById('tilePwModal');
+  overlay.style.display = 'flex';
+  document.getElementById('tilePwInput').value = '';
+  document.getElementById('tilePwError').style.display = 'none';
+  setTimeout(function(){ document.getElementById('tilePwInput').focus(); }, 100);
+}
+
+function closeTilePw() {
+  document.getElementById('tilePwModal').style.display = 'none';
+  _pwAction = null;
+  _pwParam = null;
+}
+
+function checkTilePw() {
+  var pw = document.getElementById('tilePwInput').value;
+  if (pw !== 'kor156487-') {
+    document.getElementById('tilePwError').style.display = 'block';
+    document.getElementById('tilePwInput').value = '';
+    document.getElementById('tilePwInput').focus();
+    return;
+  }
+  closeTilePw();
+  if (_pwAction === 'slot') showSlotPicker(_pwParam);
+  if (_pwAction === 'addTile') showAddTileModal(_pwParam);
+}
+
+function showAddFromTile(slotIndex) {
+  showPwForAction('addTile', slotIndex);
+}
+
+function showAddTileModal(slotIndex) {
+  // adminModal 재활용 - 추가 후 해당 슬롯에 자동 배치
+  _pendingSlot = slotIndex;
+  document.getElementById('addName').value = '';
+  document.getElementById('addUrl').value = '';
+  document.getElementById('addDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('adminModal').classList.add('open');
+}
+
+var _pendingSlot = null;
+
 function showAdmin() {
   document.getElementById("pwError").style.display = "none";
   document.getElementById("pwInput").value = "";
@@ -1420,6 +1470,16 @@ async function addDocument() {
   btn.textContent = "추가하기"; btn.disabled = false;
   updateCounts();
   pcRenderDocs(pcProject);
+  // 빈칸에서 추가한 경우 해당 슬롯에 자동 배치
+  if (_pendingSlot !== null) {
+    var newDoc = DOCS[DOCS.length - 1];
+    if (newDoc) {
+      Object.keys(LAYOUT).forEach(k => { if (String(LAYOUT[k]) === String(newDoc.id)) delete LAYOUT[k]; });
+      LAYOUT[String(_pendingSlot)] = String(newDoc.id);
+      await saveLayout();
+    }
+    _pendingSlot = null;
+  }
   renderMobileProjects();
   if (mobileProject) renderMobileDocs(mobileProject);
   closeAdmin();
@@ -1549,6 +1609,20 @@ if ('serviceWorker' in navigator) {
       <div>③ 오른쪽 상단 <strong>"추가"</strong> 버튼 탭</div>
     </div>
     <button onclick="closeIosGuide()" style="background:#1B3A6B; color:#fff; border:none; border-radius:12px; padding:14px 40px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit;">확인</button>
+  </div>
+</div>
+
+<!-- 타일/배치 비밀번호 모달 -->
+<div id="tilePwModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:16px; padding:28px 24px; width:300px; max-width:90vw; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="font-size:16px; font-weight:800; color:var(--brand); margin-bottom:16px; text-align:center;">🔒 관리자 인증</div>
+    <input id="tilePwInput" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')checkTilePw()"
+      style="width:100%; border:1.5px solid var(--border); border-radius:10px; padding:11px 14px; font-size:14px; font-family:inherit; outline:none; letter-spacing:2px; margin-bottom:8px;"/>
+    <div id="tilePwError" style="color:#e74c3c; font-size:12px; margin-bottom:8px; display:none;">비밀번호가 올바르지 않습니다</div>
+    <div style="display:flex; gap:8px;">
+      <button onclick="closeTilePw()" style="flex:1; background:#f4f6fa; color:#7a8499; border:none; border-radius:10px; padding:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;">취소</button>
+      <button onclick="checkTilePw()" style="flex:1; background:var(--brand); color:#fff; border:none; border-radius:10px; padding:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;">확인</button>
+    </div>
   </div>
 </div>
 </body>
