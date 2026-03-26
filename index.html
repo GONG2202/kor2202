@@ -139,15 +139,21 @@
             if (!documentUrl) {
                 documentUrl = toPdfViewUrl(docId);
                 setCachedDocumentUrl(docId, documentUrl);
+                console.log('🆕 새 문서 URL 생성:', docId);
+            } else {
+                console.log('💾 캐시에서 로드:', docId);
             }
             loadDocumentToModal(documentUrl, docId);
         }
         function loadDocumentToModal(documentUrl, docId) {
             const modal = document.getElementById('modal');
             const iframe = document.getElementById('document-frame');
-            iframe.onload = function() { hideLoadingSpinner(); };
-            setTimeout(() => { hideLoadingSpinner(); }, 10000);
+            iframe.onload = function() {
+                hideLoadingSpinner();
+                console.log('✅ 문서 로드 완료:', docId);
+            };
             iframe.src = documentUrl;
+            setTimeout(() => { hideLoadingSpinner(); }, 10000);
             modal.classList.add('active');
             logVisit(docId);
         }
