@@ -768,14 +768,12 @@ function toPdfViewUrl(url) {
 // ── 방문자 카운터 ──
 async function initVisitorCounter() {
   // 새로고침 중복 방지 (세션 내 1회만 카운트)
-  const alreadyCounted = sessionStorage.getItem('visit_counted');
   try {
-    const url = SHEET_API + (alreadyCounted ? '?action=visit&nocount=1' : '?action=visit');
+    const url = SHEET_API + '?action=visit';
     const res = await fetch(url);
     const data = await res.json();
     document.getElementById('visitorToday').textContent = Number(data.today).toLocaleString();
     document.getElementById('visitorTotal').textContent = Number(data.total).toLocaleString();
-    if (!alreadyCounted) sessionStorage.setItem('visit_counted', '1');
   } catch(e) {
     document.getElementById('visitorToday').textContent = '-';
     document.getElementById('visitorTotal').textContent = '-';
