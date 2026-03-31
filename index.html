@@ -1039,10 +1039,24 @@ let DOCS = [];
 // ── LAYOUT ──
 let LAYOUT = {}; // { "0": docId, "1": docId, ... } 슬롯번호:문서id
 
+// 중복 슬롯 방어: 같은 docId가 여러 슬롯에 있을 경우 첫 번째만 유지
+function deduplicateLayout() {
+  const seen = {};
+  Object.keys(LAYOUT).sort((a,b) => Number(a)-Number(b)).forEach(k => {
+    const v = String(LAYOUT[k]);
+    if (seen[v]) {
+      delete LAYOUT[k];
+    } else {
+      seen[v] = true;
+    }
+  });
+}
+
 async function loadLayout() {
   try {
     const res = await fetch(SHEET_API + '?action=getLayout');
     LAYOUT = await res.json();
+    deduplicateLayout(); // 시트에서 불러온 직후 중복 슬롯 제거
   } catch(e) { LAYOUT = {}; }
 }
 
@@ -1173,6 +1187,7 @@ function pcShowEmpty() {
 
 // ── MOBILE ──
 function renderMobileProjects() {
+  deduplicateLayout(); // 렌더링 전 중복 슬롯 방어
   const list = document.getElementById("mobile-projectList");
   let tiles = '';
   for (let i = 0; i < 12; i++) {
@@ -1346,6 +1361,7 @@ async function assignSlot(docId, slotIndex) {
     if (String(LAYOUT[k]) === String(docId)) delete LAYOUT[k];
   });
   LAYOUT[String(slotIndex)] = String(docId);
+  deduplicateLayout(); // 저장 전 최종 중복 제거
   document.getElementById('slotPickerModal')?.remove();
   await saveLayout();
   renderMobileProjects();
