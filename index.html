@@ -1474,8 +1474,17 @@ function showPwForAction(action, param) {
 
 function closeTilePw() {
   document.getElementById('tilePwModal').style.display = 'none';
+  var prevAction = _pwAction;
   _pwAction = null;
   _pwParam = null;
+  // 취소 시 이전 화면으로 복귀
+  if (prevAction === 'slot') {
+    // 문서목록(doclist) 탭에서 배치 버튼을 눌렀을 경우
+    mobileNav('doclist');
+  } else if (prevAction === 'addTile') {
+    // 홈 빈칸을 눌렀을 경우 → 홈으로 복귀
+    showMobileView('projects');
+  }
 }
 
 function checkTilePw() {
@@ -1513,7 +1522,17 @@ function showAddTileModal(slotIndex) {
 
 var _pendingSlot = null;
 
+var _adminFrom = null; // 문서관리 진입 경로 기억
+
 function showAdmin() {
+  // 진입 경로 기억
+  var isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    var doclistVisible = document.getElementById('mv-doclist').classList.contains('visible');
+    _adminFrom = doclistVisible ? 'mobile_doclist' : 'mobile_notice';
+  } else {
+    _adminFrom = 'pc';
+  }
   document.getElementById("pwError").style.display = "none";
   document.getElementById("pwInput").value = "";
   var modal = document.getElementById("pwModal");
@@ -1521,15 +1540,29 @@ function showAdmin() {
   modal.classList.add("open");
   setTimeout(function(){ document.getElementById("pwInput").focus(); }, 100);
 }
+function _goBackFromAdmin() {
+  var from = _adminFrom;
+  _adminFrom = null;
+  if (from === 'mobile_doclist') {
+    mobileNav('doclist');
+  } else if (from === 'mobile_notice') {
+    showMobileView('projects');
+  }
+  // 'pc'는 별도 뷰 전환 불필요
+}
 function closePw() {
   document.getElementById("pwModal").classList.remove("open");
   document.getElementById("pwInput").value = "";
   document.getElementById("pwError").style.display = "none";
+  // 취소 시 이전 화면으로 복귀
+  _goBackFromAdmin();
 }
 function checkPw() {
   var pw = document.getElementById("pwInput").value;
   if (pw === "kor156487-") {
-    closePw();
+    document.getElementById("pwModal").classList.remove("open");
+    document.getElementById("pwInput").value = "";
+    document.getElementById("pwError").style.display = "none";
     var modal = document.getElementById("adminModal");
     modal.style.display = 'flex';
     modal.classList.add("open");
@@ -1539,11 +1572,13 @@ function checkPw() {
     document.getElementById("pwInput").focus();
   }
 }
-function closeAdmin() { 
+function closeAdmin() {
   var modal = document.getElementById("adminModal");
   modal.classList.remove("open");
   modal.style.display = '';
   _pendingSlot = null;
+  // 취소 시 이전 화면으로 복귀
+  _goBackFromAdmin();
 }
 
 async function addDocument() {
