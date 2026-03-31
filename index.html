@@ -1536,7 +1536,7 @@ function showAdmin() {
   document.getElementById("pwError").style.display = "none";
   document.getElementById("pwInput").value = "";
   var modal = document.getElementById("pwModal");
-  modal.style.display = 'flex';
+  modal.removeAttribute("style"); // 혹시 남아있는 인라인 스타일 제거
   modal.classList.add("open");
   setTimeout(function(){ document.getElementById("pwInput").focus(); }, 100);
 }
@@ -1553,7 +1553,7 @@ function _goBackFromAdmin() {
 function closePw() {
   var modal = document.getElementById("pwModal");
   modal.classList.remove("open");
-  modal.style.display = 'none';
+  modal.removeAttribute("style"); // 인라인 스타일 완전 제거 → CSS display:none 적용
   document.getElementById("pwInput").value = "";
   document.getElementById("pwError").style.display = "none";
   // 취소 시 이전 화면으로 복귀
