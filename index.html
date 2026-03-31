@@ -1719,8 +1719,9 @@ function closePopup2() {
   document.getElementById('startPopup2').style.display = 'none';
 }
 
-init();
-openStartPopups();
+init().then(function() {
+  openStartPopups();
+});
 </script>
 <script>
 var deferredPrompt = null;
