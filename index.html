@@ -1551,7 +1551,9 @@ function _goBackFromAdmin() {
   // 'pc'는 별도 뷰 전환 불필요
 }
 function closePw() {
-  document.getElementById("pwModal").classList.remove("open");
+  var modal = document.getElementById("pwModal");
+  modal.classList.remove("open");
+  modal.style.display = 'none';
   document.getElementById("pwInput").value = "";
   document.getElementById("pwError").style.display = "none";
   // 취소 시 이전 화면으로 복귀
